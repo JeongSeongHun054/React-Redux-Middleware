@@ -1,68 +1,140 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Redux Middleware를 통한 비동기 작업
 
-## Available Scripts
+## dependency
 
-In the project directory, you can run:
+`yarn add redux react-redux redux-actions`
 
-### `yarn start`
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 기본 Redux 구조 만들기
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+### counter Redux module 작성
 
-### `yarn test`
+`modules/counter.js`
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```javascript
+import { createAction, handleActions } from "redux-actions";
 
-### `yarn build`
+const INCREASE = "counter/INCREASE";
+const DECREASE = "counter/DECREASE";
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+export const increase = createAction(INCREASE);
+export const decrease = createAction(DECREASE);
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+const initialState = 0;
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+const counter = handleActions(
+  {
+    [INCREASE]: (state) => state + 1,
+    [DECREASE]: (state) => state - 1,
+  },
+  initialState
+);
 
-### `yarn eject`
+export default counter;
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### rootReducer 생성
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+`modules/index.js`
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```javascript
+import { combineReducers } from "redux";
+import counter from "./counter";
 
-## Learn More
+const rootReducer = combineReducers({
+  counter,
+});
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+export default rootReducer;
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Store 생성 후 Provider로 React 프로젝트에 Redux 적용
 
-### Code Splitting
+`index.js`
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+```javascript
+import React from "react";
+import ReactDOM from "react-dom";
+import { createStore } from "redux";
+import { Provider } from "react-redux";
+import App from "./App";
+import rootReducer from "./modules";
 
-### Analyzing the Bundle Size
+const store = createStore(rootReducer);
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("root")
+);
+```
 
-### Making a Progressive Web App
+### Counter Component 생성
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+`components/Counter.js`
 
-### Advanced Configuration
+```javascript
+import React from "react";
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+const Counter = ({ onIncrease, onDecrease, number }) => {
+  return (
+    <div>
+      <h1>{number}</h1>
+      <button onClick={onIncrease}>+1</button>
+      <button onClick={onDecrease}>-1</button>
+    </div>
+  );
+};
 
-### Deployment
+export default Counter;
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+### Counter Container 생성
 
-### `yarn build` fails to minify
+`Container는 스토어를 Component로 가져오기 위한 것`
+`containers/CounterContainer`
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+```javascript
+import React from "react";
+import { connect } from "react-redux";
+import { increase, decrease } from "../modules/counter";
+import Counter from "../components/Counter";
+
+const CounterContainer = ({ number, increase, decrease }) => {
+  return (
+    <Counter onIncrease={increase} onDecrease={decrease} number={number} />
+  );
+};
+
+export default connect(
+  (state) => ({
+    number: state.counter,
+  }),
+  {
+    increase,
+    decrease,
+  }
+)(CounterContainer);
+```
+
+### App.js에서 CounterContainer 렌더링
+
+`App.js`
+
+```javascript
+import React from "react";
+import CounterContainer from "./containers/CounterContainer";
+
+function App() {
+  return (
+    <div>
+      <CounterContainer />
+    </div>
+  );
+}
+
+export default App;
+
+```
