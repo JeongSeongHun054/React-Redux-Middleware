@@ -1,8 +1,16 @@
 # Redux Middleware를 통한 비동기 작업
 
+## Tech
+- [x] axios
+- [x] redux
+- [x] react-redux
+- [x] react-actions
+- [x] redux-logger
+- [x] redux-thunk
+- [ ] redux-saga
 ## dependency
 
-`yarn add redux react-redux redux-actions`
+`yarn add redux react-redux redux-actions redux-logger redux-thunk axios `
 
 
 ## 기본 Redux 구조 만들기
@@ -93,8 +101,9 @@ export default Counter;
 
 ### Counter Container 생성
 
-`Container는 스토어를 Component로 가져오기 위한 것`
-`containers/CounterContainer`
+`Container Component는 스토어를 Component로 가져오기 위한 Component`
+
+`containers/CounterContainer.js`
 
 ```javascript
 import React from "react";
@@ -136,5 +145,5 @@ function App() {
 }
 
 export default App;
-
 ```
+
